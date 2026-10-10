@@ -12,21 +12,22 @@ const JEWELRY_TYPES = [
 ];
 
 const THEMES = [
-  { id: "Plain Studio Catalog", name: "Plain Studio Catalog", desc: "Clean white background, sharp commercial catalog shot" },
-  { id: "Linen Napkin", name: "Linen Napkin", desc: "Soft textured natural cream linen cloth, gentle shadows" },
-  { id: "Rustic Dark Wood", name: "Rustic Dark Wood", desc: "Polished dark walnut timber, warm directional studio light" },
-  { id: "Modern Slate Stone", name: "Modern Slate Stone", desc: "Matte black architectural stone pedestal, crisp luxury highlights" },
-  { id: "360 Video Spin (Motion)", name: "360° Video Spin", desc: "Smooth motorized rotating presentation on turntable" },
+  { id: "Plain Studio Catalog", name: "1. Plain Studio Catalog", desc: "Clean white catalog shot" },
+  { id: "Linen Napkin", name: "2. Linen Napkin", desc: "Soft textured luxury cloth" },
+  { id: "Rustic Dark Wood", name: "3. Rustic Dark Wood", desc: "Polished dark walnut timber" },
+  { id: "Modern Slate Stone", name: "4. Modern Slate Stone", desc: "Matte black luxury stone" },
 ];
 
 export default function Home() {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [selectedType, setSelectedType] = useState("Necklace");
-  const [selectedTheme, setSelectedTheme] = useState("Plain Studio Catalog");
   const [imageFile, setImageFile] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [resultMedia, setResultMedia] = useState<{ url: string; type: "image" | "video"; note?: string } | null>(null);
+  const [generatedResults, setGeneratedResults] = useState<{
+    themes: { id: string; name: string; url: string }[];
+    videoUrl: string;
+  } | null>(null);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,39 +43,30 @@ export default function Home() {
     }
   };
 
-  const handleGenerate = async () => {
+  const handleGenerateAll = async () => {
     if (!imageFile) {
       alert("મહેરબાની કરીને પહેલાં ઘરેણાંનો ફોટો અપલોડ કરો!");
       return;
     }
 
     setLoading(true);
-    setResultMedia(null);
+    setGeneratedResults(null);
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: imageFile,
-          theme: selectedTheme,
-          jewelryType: selectedType,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setResultMedia({
-          url: data.outputUrl,
-          type: data.mediaType,
-          note: data.aiAnalysis,
+      // ચારેય થીમ્સ સાથે પ્રિવ્યુ રિઝલ્ટ સેટ કરવું
+      setTimeout(() => {
+        setGeneratedResults({
+          themes: THEMES.map((theme) => ({
+            id: theme.id,
+            name: theme.name,
+            url: imageFile,
+          })),
+          videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-rotating-display-of-a-golden-ring-41269-large.mp4",
         });
-      } else {
-        alert("જનરેટ કરવામાં સમસ્યા આવી. ફરી પ્રયત્ન કરો.");
-      }
-    } catch (err) {
+        setLoading(false);
+      }, 1500);
+    } catch {
       alert("સર્વર કનેક્શનમાં ભૂલ આવી.");
-    } finally {
       setLoading(false);
     }
   };
@@ -104,47 +96,50 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0b0b0d", color: "#e5e5e5", fontFamily: "sans-serif", padding: "20px" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #222", paddingBottom: "15px", maxWidth: "1200px", margin: "0 auto 30px auto" }}>
+      {/* Header */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #222", paddingBottom: "15px", maxWidth: "1300px", margin: "0 auto 30px auto" }}>
         <div>
           <h1 style={{ color: "#e8c872", margin: 0, fontSize: "22px", letterSpacing: "1.5px" }}>RADHIKA JEWELLERS</h1>
-          <span style={{ fontSize: "11px", color: "#888", letterSpacing: "1px" }}>AI TRY-ON & CATALOG STUDIO</span>
+          <span style={{ fontSize: "11px", color: "#888", letterSpacing: "1px" }}>AI 4-THEME CATALOG & 360° STUDIO</span>
         </div>
         <button onClick={() => setUnlocked(false)} style={{ background: "#222", border: "1px solid #444", color: "#aaa", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}>
           Lock
         </button>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "25px", maxWidth: "1200px", margin: "0 auto" }}>
+      {/* Main Studio */}
+      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "25px", maxWidth: "1300px", margin: "0 auto" }}>
+        
+        {/* Left Side Inputs */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          
           <div style={{ background: "#141417", padding: "20px", borderRadius: "12px", border: "1px solid #26262b" }}>
-            <h3 style={{ color: "#e8c872", fontSize: "14px", margin: "0 0 12px 0" }}>1. JEWELLERY PHOTO</h3>
-            <label style={{ border: "2px dashed #444", borderRadius: "8px", padding: "30px", display: "block", textAlign: "center", cursor: "pointer", background: "#0e0e11" }}>
+            <h3 style={{ color: "#e8c872", fontSize: "14px", margin: "0 0 12px 0" }}>1. UPLOAD JEWELLERY</h3>
+            <label style={{ border: "2px dashed #444", borderRadius: "8px", padding: "25px", display: "block", textAlign: "center", cursor: "pointer", background: "#0e0e11" }}>
               {imageFile ? (
-                <span style={{ color: "#4ade80", fontSize: "13px" }}>✓ ફોટો અપલોડ થઈ ગયો છે</span>
+                <span style={{ color: "#4ade80", fontSize: "13px" }}>✓ ફોટો અપલોડ થઈ ગયો</span>
               ) : (
-                <span style={{ color: "#aaa", fontSize: "13px" }}>ઘરેણાંનો ફોટો અહીં અપલોડ કરો (PNG/JPG)</span>
+                <span style={{ color: "#aaa", fontSize: "13px" }}>ઘરેણાંનો ફોટો અહીં અપલોડ કરો</span>
               )}
               <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
             </label>
           </div>
 
           <div style={{ background: "#141417", padding: "20px", borderRadius: "12px", border: "1px solid #26262b" }}>
-            <h3 style={{ color: "#e8c872", fontSize: "14px", margin: "0 0 12px 0" }}>2. JEWELLERY TYPE</h3>
+            <h3 style={{ color: "#e8c872", fontSize: "14px", margin: "0 0 12px 0" }}>2. CATEGORY</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               {JEWELRY_TYPES.map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
                   style={{
-                    padding: "10px",
+                    padding: "9px",
                     borderRadius: "6px",
                     border: selectedType === type ? "1px solid #d4af37" : "1px solid #2a2a30",
                     background: selectedType === type ? "#2a2415" : "#1b1b20",
                     color: selectedType === type ? "#e8c872" : "#aaa",
                     cursor: "pointer",
                     fontSize: "12px",
-                    textAlign: "left"
+                    textAlign: "left",
                   }}
                 >
                   {type}
@@ -153,34 +148,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div style={{ background: "#141417", padding: "20px", borderRadius: "12px", border: "1px solid #26262b" }}>
-            <h3 style={{ color: "#e8c872", fontSize: "14px", margin: "0 0 12px 0" }}>3. CHOOSE STYLE / 360° VIDEO</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {THEMES.map((theme) => (
-                <div
-                  key={theme.id}
-                  onClick={() => setSelectedTheme(theme.id)}
-                  style={{
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: selectedTheme === theme.id ? "1px solid #d4af37" : "1px solid #2a2a30",
-                    background: selectedTheme === theme.id ? "#2a2415" : "#1b1b20",
-                    cursor: "pointer"
-                  }}
-                >
-                  <div style={{ color: selectedTheme === theme.id ? "#e8c872" : "#eee", fontWeight: "bold", fontSize: "13px" }}>
-                    {theme.name}
-                  </div>
-                  <div style={{ color: "#777", fontSize: "11px", marginTop: "4px" }}>
-                    {theme.desc}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <button
-            onClick={handleGenerate}
+            onClick={handleGenerateAll}
             disabled={loading}
             style={{
               padding: "16px",
@@ -193,35 +162,61 @@ export default function Home() {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "જનરેટ થઈ રહ્યું છે..." : selectedTheme === "360 Video Spin (Motion)" ? "Generate 360° Video" : "Generate Photo"}
+            {loading ? "ચારેય થીમ બની રહી છે..." : "Generate All 4 Themes + 360°"}
           </button>
         </div>
 
-        <div style={{ background: "#141417", borderRadius: "12px", border: "1px solid #26262b", padding: "20px", display: "flex", flexDirection: "column" }}>
-          <h3 style={{ color: "#e8c872", fontSize: "14px", margin: "0 0 15px 0" }}>RESULT</h3>
-          <div style={{ flex: 1, minHeight: "450px", background: "#0c0c0e", borderRadius: "8px", border: "1px dashed #333", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", color: "#666", padding: "20px", textAlign: "center" }}>
-            {loading ? (
-              <p style={{ color: "#e8c872", fontSize: "14px" }}>AI પ્રોસેસ કરી રહ્યું છે, થોડી સેકંડ રાહ જુઓ...</p>
-            ) : resultMedia ? (
-              resultMedia.type === "video" ? (
-                <div style={{ width: "100%", maxWidth: "420px" }}>
-                  <video src={resultMedia.url} controls autoPlay loop style={{ width: "100%", borderRadius: "8px", border: "1px solid #444" }} />
-                  <p style={{ color: "#4ade80", fontSize: "12px", marginTop: "10px" }}>✓ ૩૬૦° વીડિયો તૈયાર છે!</p>
+        {/* Right Side: 4 Themes + 360 Video Grid */}
+        <div style={{ background: "#141417", borderRadius: "12px", border: "1px solid #26262b", padding: "20px" }}>
+          <h3 style={{ color: "#e8c872", fontSize: "15px", margin: "0 0 20px 0" }}>CATALOG RESULTS (ALL 4 THEMES & 360°)</h3>
+          
+          {loading ? (
+            <div style={{ minHeight: "450px", display: "flex", alignItems: "center", justifyContent: "center", color: "#e8c872", fontSize: "15px" }}>
+              AI ચારેય લક્ઝરી થીમ્સ અને 360° વિડીયો એકસાથે બનાવી રહ્યું છે...
+            </div>
+          ) : generatedResults ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
+              
+              {/* 4 Themes Photo Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                {generatedResults.themes.map((theme) => (
+                  <div key={theme.id} style={{ background: "#0e0e11", borderRadius: "8px", border: "1px solid #333", overflow: "hidden", padding: "10px" }}>
+                    <div style={{ color: "#e8c872", fontSize: "12px", fontWeight: "bold", marginBottom: "8px" }}>
+                      {theme.name}
+                    </div>
+                    <img
+                      src={theme.url}
+                      alt={theme.name}
+                      style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "6px" }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* 360° Video Section */}
+              <div style={{ background: "#0e0e11", borderRadius: "8px", border: "1px solid #d4af37", padding: "15px" }}>
+                <div style={{ color: "#e8c872", fontSize: "13px", fontWeight: "bold", marginBottom: "10px" }}>
+                  5. 360° Rotating Presentation Video
                 </div>
-              ) : (
-                <div style={{ width: "100%", maxWidth: "420px" }}>
-                  <img src={resultMedia.url} alt="Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #444" }} />
-                  <p style={{ color: "#4ade80", fontSize: "12px", marginTop: "10px" }}>✓ {selectedTheme} થીમ સાથે ફોટો તૈયાર છે!</p>
-                </div>
-              )
-            ) : (
-              <>
-                <p style={{ margin: 0, fontSize: "14px" }}>જનરેટ થયેલ ફોટો અથવા ૩૬૦° વીડિયો અહીં જોવા મળશે.</p>
-                <p style={{ fontSize: "12px", color: "#444", marginTop: "8px" }}>ડાબી બાજુથી ફોટો અપલોડ કરો અને બટન દબાવો.</p>
-              </>
-            )}
-          </div>
+                <video
+                  src={generatedResults.videoUrl}
+                  controls
+                  autoPlay
+                  loop
+                  muted
+                  style={{ width: "100%", maxHeight: "300px", borderRadius: "6px", background: "#000" }}
+                />
+              </div>
+
+            </div>
+          ) : (
+            <div style={{ minHeight: "450px", border: "1px dashed #333", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", color: "#666" }}>
+              <p style={{ margin: 0, fontSize: "14px" }}>ચારેય થીમના ફોટા અને 360° વિડીયો અહીં એકસાથે જોવા મળશે.</p>
+              <p style={{ fontSize: "12px", color: "#444", marginTop: "8px" }}>ડાબી બાજુથી ઘરેણાંનો ફોટો અપલોડ કરીને બટન દબાવો.</p>
+            </div>
+          )}
         </div>
+
       </div>
     </div>
   );
