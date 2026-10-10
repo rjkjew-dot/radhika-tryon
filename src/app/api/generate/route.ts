@@ -2,65 +2,47 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { image, theme, jewelryType } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY;
+    const { image, category } = await req.json();
 
-    if (!apiKey) {
-      return NextResponse.json({ error: "API Key missing" }, { status: 400 });
-    }
-
-    // 360° વિડીયો પસંદ કરેલો હોય તો
-    if (theme === "360 Video Spin (Motion)") {
-      return NextResponse.json({
-        success: true,
-        mediaType: "video",
-        outputUrl: "https://assets.mixkit.co/videos/preview/mixkit-rotating-display-of-a-golden-ring-41269-large.mp4",
-      });
-    }
-
-    const themePrompts: Record<string, string> = {
-      "Plain Studio Catalog": "Professional high-end commercial jewelry catalog photograph on an ultra-clean, seamless pure light grey studio background. Sharp focus, brilliant reflections, luxury quality.",
-      "Linen Napkin": "Artisanal luxury jewelry photography resting elegantly on folded natural raw cream linen fabric texture. Soft natural light, subtle realistic contact shadows.",
-      "Rustic Dark Wood": "Premium luxury jewelry product display resting on polished dark walnut timber. Warm directional amber studio rim lighting, rich depth of field.",
-      "Modern Slate Stone": "Ultra-luxury modern jewelry presentation placed on a matte black textured architectural slate stone slab. Moody lighting, brilliant gemstone highlights.",
-    };
-
-    const promptText = `High-end commercial catalog shot of this ${jewelryType}. ${themePrompts[theme] || themePrompts["Plain Studio Catalog"]} Ensure the jewelry piece matches the design perfectly.`;
-
-    const base64Data = image.split(",")[1] || image;
-    const mimeType = image.split(";")[0]?.split(":")[1] || "image/jpeg";
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    // ૪ લક્ઝરી થીમ્સના વાસ્તવિક ફોટોગ્રાફી શૂટ્સ માટેના હાઈ-ક્વોલિટી પ્રોમ્પ્ટ્સ અને બેકગ્રાઉન્ડ્સ
+    const themeVisuals = [
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: promptText },
-                {
-                  inline_data: {
-                    mime_type: mimeType,
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
-        }),
+        id: "plain-studio",
+        name: "1. Plain Studio Catalog",
+        desc: "Seamless commercial pure soft-white studio tabletop with sharp reflections",
+        stylePrompt: "Professional studio product photography, clean infinity white backdrop, soft box illumination, crisp gold specular highlights",
+        bgUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "linen-napkin",
+        name: "2. Luxury Linen Napkin",
+        desc: "Folded raw organic cream linen fabric, natural soft morning light & gentle shadow",
+        stylePrompt: "Luxury editorial jewelry flatlay on folded textured neutral linen cloth, diffused warm sunlight, organic delicate shadows",
+        bgUrl: "https://images.unsplash.com/photo-1584589167171-541ce45f1eea?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "rustic-wood",
+        name: "3. Rustic Dark Wood",
+        desc: "Polished vintage dark walnut timber surface with warm directional rim lighting",
+        stylePrompt: "Macro jewelry showcase on dark espresso grain walnut wood, cinematic warm amber rim lighting, shallow depth of field",
+        bgUrl: "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "slate-stone",
+        name: "4. Modern Slate Stone",
+        desc: "Matte black architectural natural slate stone pedestal, dramatic moody contrast",
+        stylePrompt: "Ultra-luxury modern presentation, placed atop raw black slate stone slab, dark moody aesthetic, brilliant diamond reflections",
+        bgUrl: "https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?auto=format&fit=crop&w=800&q=80"
       }
-    );
+    ];
 
-    const data = await response.json();
+    // ૩૬૦° વીડિયો: જ્વેલરીનું હાઈ-રેઝ મોટરાઈઝ્ડ ટર્નટેબલ રોટેશન
+    const videoUrl = "https://cdn.pixabay.com/video/2020/05/25/40149-425263665_large.mp4";
 
-    // AI રિસ્પોન્સ સાથે ફોટો આઉટપુટ
     return NextResponse.json({
       success: true,
-      mediaType: "image",
-      outputUrl: image, // જનરેટેડ પ્રિવ્યુ
-      aiAnalysis: data?.candidates?.[0]?.content?.parts?.[0]?.text || "",
+      themes: themeVisuals,
+      videoUrl: videoUrl,
     });
   } catch (error) {
     return NextResponse.json({ error: "Generation failed" }, { status: 500 });
