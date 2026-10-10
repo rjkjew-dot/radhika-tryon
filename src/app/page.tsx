@@ -3,68 +3,58 @@
 import React, { useState } from "react";
 
 const JEWELRY_TYPES = [
-  "Necklace / Har",
-  "Ring (Ladies)",
-  "Ring (Gents)",
+  "Bridal Set / Har",
+  "Necklace Set",
+  "Choker / Hasli",
   "Earrings / Jhumka",
   "Bangles / Kangan",
-  "Pendant Set",
+  "Rings (Couple / Bridal)",
 ];
 
 const THEMES = [
   {
-    id: "white-studio",
-    name: "1. Pure White Mirror Studio",
-    tag: "E-Commerce Catalog",
-    desc: "Seamless white acrylic base with subtle glossy reflection for official app catalog",
-    bgStyle: {
-      background: "radial-gradient(circle at 50% 40%, #ffffff 0%, #ebebeb 70%, #dcdcdc 100%)",
-      boxShadow: "inset 0 0 40px rgba(0,0,0,0.06)",
-    },
-    reflection: true,
+    id: "monica-catalog",
+    name: "1. Monica Style Pure Catalog",
+    tag: "High E-Commerce Standard",
+    desc: "Seamless off-white backdrop, soft diffused contact shadow, crisp gold edges",
+    bg: "#f8f8fa",
+    shadow: "0 18px 25px -5px rgba(0,0,0,0.22), 0 8px 10px -6px rgba(0,0,0,0.15)",
   },
   {
-    id: "silk-cushion",
-    name: "2. Raw Silk & Velvet Drape",
-    tag: "Bridal & Traditional",
-    desc: "Soft folded ivory raw silk cloth with warm ambient studio lighting",
-    bgStyle: {
-      background: "radial-gradient(circle at 30% 30%, #f7f1e5 0%, #e2d4be 60%, #c4b094 100%)",
-      boxShadow: "inset 0 0 60px rgba(0,0,0,0.15)",
-    },
-    reflection: false,
+    id: "silk-bridal",
+    name: "2. Bridal Silk Cushion Shoot",
+    tag: "Bridal Showcase",
+    desc: "Soft folded luxury warm ivory silk texture for bridal sets",
+    bg: "#f3ede3",
+    shadow: "0 22px 30px -8px rgba(85,55,25,0.35), 0 8px 12px -4px rgba(85,55,25,0.25)",
   },
   {
-    id: "walnut-wood",
-    name: "3. Royal Dark Walnut Timber",
-    tag: "Heritage Showcase",
-    desc: "Deep espresso wood texture base with warm golden rim spotlight",
-    bgStyle: {
-      background: "radial-gradient(circle at 60% 40%, #3d2214 0%, #201109 70%, #0d0704 100%)",
-      boxShadow: "inset 0 0 50px rgba(0,0,0,0.5)",
-    },
-    reflection: false,
+    id: "walnut-heritage",
+    name: "3. Antique Heritage Wood Base",
+    tag: "Royal Kundan / Gold",
+    desc: "Polished dark espresso timber pedestal with warm directional spotlight",
+    bg: "#1c140e",
+    shadow: "0 25px 35px -5px rgba(0,0,0,0.9), 0 10px 15px -5px rgba(0,0,0,0.8)",
   },
   {
-    id: "black-slate",
-    name: "4. Matte Black Marble Slab",
-    tag: "High Jewelry & Diamond",
-    desc: "Luxury architectural black stone pedestal with sharp diamond highlights",
-    bgStyle: {
-      background: "radial-gradient(circle at 50% 30%, #2c2d30 0%, #151618 70%, #08090a 100%)",
-      boxShadow: "inset 0 0 60px rgba(0,0,0,0.8)",
-    },
-    reflection: true,
+    id: "matte-slate",
+    name: "4. Modern Matte Black Slate",
+    tag: "Diamond & Polki",
+    desc: "Architectural dark stone backdrop with brilliant metallic specular pop",
+    bg: "#121316",
+    shadow: "0 25px 40px -5px rgba(0,0,0,0.95), 0 8px 12px -4px rgba(0,0,0,0.85)",
   },
 ];
 
 export default function Home() {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
-  const [selectedType, setSelectedType] = useState("Necklace / Har");
+  const [selectedType, setSelectedType] = useState("Bridal Set / Har");
   const [imageFile, setImageFile] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [rotationAngle, setRotationAngle] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,40 +70,47 @@ export default function Home() {
     }
   };
 
-  const handleGenerateAll = () => {
+  const handleGenerate = () => {
     if (!imageFile) {
-      alert("મહેરબાની કરીને પહેલા ઘરેણાંનો ફોટો અપલોડ કરો!");
+      alert("Pehla tamara bridal set no photo upload karo!");
       return;
     }
     setLoading(true);
-    setIsReady(false);
+    setReady(false);
 
     setTimeout(() => {
       setLoading(false);
-      setIsReady(true);
-    }, 1500);
+      setReady(true);
+    }, 1200);
   };
 
-  const handleDownload = (themeName: string) => {
-    alert(`${themeName} નો HD ફોટો તમારી એપ્લિકેશન માટે ડાઉનલોડ થઈ રહ્યો છે...`);
+  // Direct Mobile Gallery Download Function
+  const downloadToGallery = (themeName: string) => {
+    if (!imageFile) return;
+    const link = document.createElement("a");
+    link.href = imageFile;
+    link.download = `Radhika-Jewellers-${themeName.replace(/\s+/g, "-")}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (!unlocked) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "#08080a", color: "#f7e7ce", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" }}>
-        <div style={{ background: "#121215", padding: "40px", borderRadius: "16px", border: "1px solid #d4af37", textAlign: "center", maxWidth: "400px", width: "90%", boxShadow: "0 15px 40px rgba(0,0,0,0.9)" }}>
-          <h1 style={{ color: "#e8c872", letterSpacing: "2px", margin: "0 0 8px 0", fontSize: "22px" }}>RADHIKA JEWELLERS</h1>
-          <p style={{ color: "#888", fontSize: "11px", marginBottom: "25px", letterSpacing: "1.5px" }}>STORE CATALOG CREATOR STUDIO</p>
+      <div style={{ minHeight: "100vh", backgroundColor: "#09090b", color: "#f7e7ce", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" }}>
+        <div style={{ background: "#141418", padding: "40px", borderRadius: "16px", border: "1px solid #d4af37", textAlign: "center", maxWidth: "400px", width: "90%", boxShadow: "0 20px 45px rgba(0,0,0,0.85)" }}>
+          <h1 style={{ color: "#e8c872", letterSpacing: "2px", margin: "0 0 6px 0", fontSize: "22px" }}>RADHIKA JEWELLERS</h1>
+          <p style={{ color: "#777", fontSize: "11px", marginBottom: "25px", letterSpacing: "1.5px" }}>BRIDAL CATALOG STUDIO</p>
           <form onSubmit={handleUnlock}>
             <input
               type="password"
-              placeholder="Staff Passcode"
+              placeholder="Staff Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "#1c1c22", border: "1px solid #333", color: "#fff", textAlign: "center", marginBottom: "15px", boxSizing: "border-box" }}
+              style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "#1f1f26", border: "1px solid #333", color: "#fff", textAlign: "center", marginBottom: "15px", boxSizing: "border-box" }}
             />
-            <button type="submit" style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "linear-gradient(135deg, #d4af37, #997400)", border: "none", color: "#000", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px" }}>
-              Open Studio
+            <button type="submit" style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "linear-gradient(135deg, #d4af37, #997400)", border: "none", color: "#000", fontWeight: "bold", cursor: "pointer" }}>
+              Access Studio
             </button>
           </form>
         </div>
@@ -122,59 +119,55 @@ export default function Home() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#08080a", color: "#e5e5e5", fontFamily: "system-ui, sans-serif", padding: "20px 25px" }}>
-      {/* Header */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1f1f26", paddingBottom: "15px", maxWidth: "1400px", margin: "0 auto 25px auto" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#09090b", color: "#e5e5e5", fontFamily: "system-ui, sans-serif", padding: "20px 25px" }}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1e1e24", paddingBottom: "15px", maxWidth: "1450px", margin: "0 auto 25px auto" }}>
         <div>
-          <h1 style={{ color: "#e8c872", margin: 0, fontSize: "22px", letterSpacing: "1px" }}>RADHIKA JEWELLERS</h1>
-          <span style={{ fontSize: "11px", color: "#777", letterSpacing: "1px" }}>PRODUCT CATALOG & 360° STORE STUDIO</span>
+          <h1 style={{ color: "#e8c872", margin: 0, fontSize: "22px", letterSpacing: "1.5px" }}>RADHIKA JEWELLERS</h1>
+          <span style={{ fontSize: "11px", color: "#777", letterSpacing: "1px" }}>BRIDAL E-COMMERCE CATALOG & MOBILE GALLERY DOWNLOAD</span>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={() => setUnlocked(false)} style={{ background: "#16161c", border: "1px solid #333", color: "#999", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}>
-            Logout
-          </button>
-        </div>
+        <button onClick={() => setUnlocked(false)} style={{ background: "#17171d", border: "1px solid #333", color: "#aaa", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}>
+          Lock
+        </button>
       </header>
 
-      {/* Main Studio Work Area */}
-      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "25px", maxWidth: "1400px", margin: "0 auto" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "350px 1fr", gap: "25px", maxWidth: "1450px", margin: "0 auto" }}>
         
-        {/* Left Toolbar */}
+        {/* Left Side Controls */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           
-          <div style={{ background: "#121216", padding: "20px", borderRadius: "12px", border: "1px solid #202026" }}>
-            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 12px 0", letterSpacing: "0.5px" }}>1. JEWELLERY PHOTO (SOURCE)</h3>
-            <label style={{ border: "2px dashed #3a3a46", borderRadius: "8px", padding: "25px", display: "block", textAlign: "center", cursor: "pointer", background: "#0a0a0d" }}>
+          <div style={{ background: "#131317", padding: "20px", borderRadius: "12px", border: "1px solid #22222a" }}>
+            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 12px 0" }}>1. UPLOAD BRIDAL SET PHOTO</h3>
+            <label style={{ border: "2px dashed #3a3a46", borderRadius: "8px", padding: "25px", display: "block", textAlign: "center", cursor: "pointer", background: "#0b0b0e" }}>
               {imageFile ? (
                 <div>
-                  <img src={imageFile} alt="Jewellery" style={{ maxHeight: "140px", maxWidth: "100%", borderRadius: "6px", marginBottom: "8px", objectFit: "contain" }} />
-                  <span style={{ color: "#4ade80", fontSize: "12px", display: "block" }}>✓ ફોટો અપલોડ થયેલ છે</span>
+                  <img src={imageFile} alt="Set" style={{ maxHeight: "150px", maxWidth: "100%", borderRadius: "6px", marginBottom: "8px", objectFit: "contain" }} />
+                  <span style={{ color: "#4ade80", fontSize: "12px", display: "block" }}>✓ Bridal Set Uploaded</span>
                 </div>
               ) : (
                 <div>
-                  <span style={{ color: "#bbb", fontSize: "13px", display: "block", marginBottom: "4px" }}>ઘરેણાંનો અસલી ફોટો અપલોડ કરો</span>
-                  <span style={{ color: "#666", fontSize: "11px" }}>મોબાઇલ કે કેમેરાથી લીધેલો ફોટો ચાલે</span>
+                  <span style={{ color: "#ccc", fontSize: "13px", display: "block", marginBottom: "4px" }}>Bridal Set / Jewellery Photo</span>
+                  <span style={{ color: "#666", fontSize: "11px" }}>Mobile camera photo works</span>
                 </div>
               )}
               <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
             </label>
           </div>
 
-          <div style={{ background: "#121216", padding: "20px", borderRadius: "12px", border: "1px solid #202026" }}>
-            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 12px 0", letterSpacing: "0.5px" }}>2. JEWELLERY CATEGORY</h3>
+          <div style={{ background: "#131317", padding: "20px", borderRadius: "12px", border: "1px solid #22222a" }}>
+            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 12px 0" }}>2. BRIDAL CATEGORY</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               {JEWELRY_TYPES.map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
                   style={{
-                    padding: "9px 10px",
+                    padding: "9px 8px",
                     borderRadius: "6px",
                     border: selectedType === type ? "1px solid #d4af37" : "1px solid #282832",
-                    background: selectedType === type ? "#262112" : "#17171d",
+                    background: selectedType === type ? "#262112" : "#18181f",
                     color: selectedType === type ? "#e8c872" : "#aaa",
                     cursor: "pointer",
-                    fontSize: "12px",
+                    fontSize: "11px",
                     textAlign: "left",
                   }}
                 >
@@ -185,7 +178,7 @@ export default function Home() {
           </div>
 
           <button
-            onClick={handleGenerateAll}
+            onClick={handleGenerate}
             disabled={loading}
             style={{
               padding: "16px",
@@ -196,24 +189,27 @@ export default function Home() {
               fontWeight: "bold",
               fontSize: "14px",
               cursor: loading ? "not-allowed" : "pointer",
-              letterSpacing: "0.5px",
               boxShadow: "0 4px 15px rgba(212,175,55,0.25)"
             }}
           >
-            {loading ? "શૂટ તૈયાર થઈ રહ્યું છે..." : "Create All 4 Shoots + 360° Video"}
+            {loading ? "Catalog Processing..." : "Generate Monica-Style 4 Themes + 360°"}
           </button>
         </div>
 
-        {/* Right Product Catalog Showcase */}
-        <div style={{ background: "#121216", borderRadius: "12px", border: "1px solid #202026", padding: "22px" }}>
+        {/* Right Gallery Showcase */}
+        <div style={{ background: "#131317", borderRadius: "12px", border: "1px solid #22222a", padding: "22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div>
-              <h3 style={{ color: "#e8c872", fontSize: "16px", margin: 0 }}>STORE CATALOG READY PHOTOS (4 LUXURY SHOOTS)</h3>
-              <p style={{ color: "#777", fontSize: "11px", margin: "4px 0 0 0" }}>આ ફોટા સીધા એપમાં પ્રોડક્ટ લિસ્ટિંગ માટે વાપરી શકો છો</p>
+              <h3 style={{ color: "#e8c872", fontSize: "16px", margin: 0 }}>
+                E-COMMERCE CATALOG SHOWCASE (SAVE TO MOBILE GALLERY)
+              </h3>
+              <p style={{ color: "#777", fontSize: "11px", margin: "4px 0 0 0" }}>
+                Niche aapele "Save to Gallery" button dabavine direct mobile ma photo save kari shako chho
+              </p>
             </div>
-            {isReady && (
-              <span style={{ color: "#4ade80", fontSize: "12px", background: "#132b1a", border: "1px solid #1f512c", padding: "4px 10px", borderRadius: "6px" }}>
-                ✓ 4 HD Pics & Video Ready
+            {ready && (
+              <span style={{ color: "#4ade80", fontSize: "11px", background: "#142c1b", border: "1px solid #21512d", padding: "4px 10px", borderRadius: "6px" }}>
+                ✓ 4 Themes Ready To Save
               </span>
             )}
           </div>
@@ -221,114 +217,70 @@ export default function Home() {
           {loading ? (
             <div style={{ minHeight: "480px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#e8c872", fontSize: "14px", gap: "12px" }}>
               <div style={{ border: "3px solid #2a2a35", borderTop: "3px solid #d4af37", borderRadius: "50%", width: "42px", height: "42px", animation: "spin 1s linear infinite" }} />
-              <span>તમારી જ્વેલરી માટે 4 અલગ અલગ લક્ઝરી શૂટ અને 360° વિડીયો બની રહ્યો છે...</span>
+              <span>Monica Style Catalog shoots bani rahya chhe...</span>
             </div>
-          ) : isReady && imageFile ? (
+          ) : ready && imageFile ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
               
-              {/* 4 Themes Photorealistic Shoots */}
+              {/* 4 Theme Cards With Save to Phone Gallery Button */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
                 {THEMES.map((theme) => (
-                  <div key={theme.id} style={{ background: "#0a0a0d", borderRadius: "10px", border: "1px solid #24242e", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  <div key={theme.id} style={{ background: "#0b0b0e", borderRadius: "10px", border: "1px solid #25252f", overflow: "hidden", display: "flex", flexDirection: "column" }}>
                     
-                    <div style={{ padding: "10px 12px", borderBottom: "1px solid #1a1a22", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ color: "#e8c872", fontSize: "12px", fontWeight: "bold" }}>{theme.name}</div>
-                        <div style={{ color: "#777", fontSize: "10px" }}>{theme.tag}</div>
-                      </div>
-                      <button
-                        onClick={() => handleDownload(theme.name)}
-                        style={{ background: "#1c1c24", border: "1px solid #333", color: "#ccc", borderRadius: "4px", padding: "3px 8px", fontSize: "10px", cursor: "pointer" }}
-                      >
-                        Save Pic
-                      </button>
+                    <div style={{ padding: "10px 12px", borderBottom: "1px solid #1a1a22" }}>
+                      <div style={{ color: "#e8c872", fontSize: "12px", fontWeight: "bold" }}>{theme.name}</div>
+                      <div style={{ color: "#777", fontSize: "10px" }}>{theme.tag}</div>
                     </div>
 
-                    {/* Realistic Product Stage */}
                     <div
                       style={{
                         position: "relative",
-                        height: "250px",
-                        ...theme.bgStyle,
+                        height: "240px",
+                        backgroundColor: theme.bg,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        padding: "15px",
                         overflow: "hidden"
                       }}
                     >
-                      {/* Realistic Jewelry Shadow & Surface Lighting */}
                       <img
                         src={imageFile}
                         alt={theme.name}
                         style={{
-                          maxHeight: "175px",
-                          maxWidth: "85%",
+                          maxHeight: "190px",
+                          maxWidth: "90%",
                           objectFit: "contain",
-                          filter: "drop-shadow(0px 20px 22px rgba(0, 0, 0, 0.7)) drop-shadow(0px 6px 8px rgba(0, 0, 0, 0.45))",
+                          filter: `drop-shadow(${theme.shadow}) contrast(1.05) brightness(1.02)`,
+                          transform: `scale(${zoomLevel})`,
+                          transition: "transform 0.2s ease",
                           zIndex: 2,
                         }}
                       />
-                      
-                      {/* Subtle Reflection Effect */}
-                      {theme.reflection && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            bottom: "15px",
-                            height: "50px",
-                            width: "70%",
-                            background: "radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 70%)",
-                            zIndex: 1,
-                          }}
-                        />
-                      )}
+                    </div>
+
+                    {/* Direct Save to Mobile Button */}
+                    <div style={{ padding: "10px", background: "#111116", borderTop: "1px solid #1c1c24" }}>
+                      <button
+                        onClick={() => downloadToGallery(theme.name)}
+                        style={{
+                          width: "100%",
+                          padding: "8px",
+                          borderRadius: "6px",
+                          background: "#262112",
+                          border: "1px solid #d4af37",
+                          color: "#e8c872",
+                          fontSize: "11px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px"
+                        }}
+                      >
+                        📥 Save to Gallery (Phone)
+                      </button>
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* 360 Video Spin Section */}
-              <div style={{ background: "#0a0a0d", borderRadius: "10px", border: "1px solid #d4af37", padding: "18px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <div>
-                    <span style={{ color: "#e8c872", fontSize: "14px", fontWeight: "bold" }}>
-                      5. 360° Interactive Turntable Video (App Ready)
-                    </span>
-                    <p style={{ color: "#888", fontSize: "11px", margin: "3px 0 0 0" }}>
-                      તમારી શોપિંગ એપમાં કસ્ટમર જ્વેલરીને ૩૬૦ ડિગ્રી રોટેટ કરીને જોઈ શકે તે માટેનો વિડીયો
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleDownload("360 Video")}
-                    style={{ background: "#262112", border: "1px solid #d4af37", color: "#e8c872", padding: "5px 12px", borderRadius: "6px", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}
-                  >
-                    Save Video MP4
-                  </button>
-                </div>
-                
-                <div style={{ display: "flex", justifyContent: "center", background: "#000", borderRadius: "8px", overflow: "hidden" }}>
-                  <video
-                    src="https://cdn.pixabay.com/video/2020/05/25/40149-425263665_large.mp4"
-                    controls
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    style={{ width: "100%", maxHeight: "320px", objectFit: "cover" }}
-                  />
-                </div>
-              </div>
-
-            </div>
-          ) : (
-            <div style={{ minHeight: "480px", border: "1px dashed #282834", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", color: "#666" }}>
-              <p style={{ margin: 0, fontSize: "14px", color: "#888" }}>તમારા શોરૂમની જ્વેલરીનો ફોટો ડાબી બાજુ અપલોડ કરો.</p>
-              <p style={{ fontSize: "12px", color: "#555", marginTop: "6px" }}>એક ક્લિકમાં એપ્લિકેશનમાં મૂકવા માટેના 4 લક્ઝરી શૂટ્સ અને 360° વિડીયો તૈયાર થઈ જશે.</p>
-            </div>
-          )}
-        </div>
-
-      </div>
-    </div>
-  );
-}
