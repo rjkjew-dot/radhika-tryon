@@ -1,155 +1,164 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
+
+// Darek product category mate auto-fit coordinates & sizes
+const PRODUCT_CATEGORIES = [
+  { id: "necklace", name: "Necklace / Bridal Har", scale: 0.58, top: "42%" },
+  { id: "choker", name: "Choker / Short Set", scale: 0.48, top: "36%" },
+  { id: "earrings", name: "Earrings / Jhumka", scale: 0.32, top: "34%" },
+  { id: "bangles", name: "Bangles / Kada / Chuda", scale: 0.45, top: "52%" },
+  { id: "ring", name: "Ladies / Gents Ring", scale: 0.28, top: "54%" },
+  { id: "pendant", name: "Pendant Set / Chain", scale: 0.42, top: "44%" },
+];
 
 const THEMES = [
   {
-    id: "white-stand",
-    name: "1. White Bust Stand (Monica Style)",
-    tag: "E-Commerce Catalog",
-    desc: "Necklace displayed on pure white mannequin neck bust stand with soft shadow",
-    themeBg: "#ffffff",
-    themeType: "stand"
-  },
-  {
     id: "model-saree",
-    name: "2. Real Model Saree Wear",
-    tag: "Traditional Bridal Shoot",
-    desc: "Indian bride wearing royal banarasi silk saree wearing this necklace",
-    themeBg: "linear-gradient(180deg, #1f1214 0%, #3d1b20 50%, #150b0c 100%)",
-    themeType: "model"
+    name: "1. Real Indian Model Shoot (Saree)",
+    tag: "Model Wearing Shot",
+    desc: "Indian bridal saree model wearing your jewellery piece automatically",
+    bgUrl: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1080&q=85",
+    type: "model",
   },
   {
     id: "red-velvet",
-    name: "3. Royal Red Velvet Drape",
-    tag: "Luxury Bridal Flatlay",
-    desc: "Deep crimson red bridal velvet fabric with realistic folds and ambient lighting",
-    themeBg: "radial-gradient(circle at 50% 50%, #850c1b 0%, #4a030d 70%, #1f0105 100%)",
-    themeType: "velvet"
+    name: "2. Royal Crimson Red Velvet Drape",
+    tag: "Luxury Velvet Flatlay",
+    desc: "Rich textured bridal red velvet silk folds with cinematic soft lighting",
+    bgUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1080&q=85",
+    type: "velvet",
   },
   {
-    id: "gold-highlight",
-    name: "4. Studio Close-up Shoot",
-    tag: "Craftsmanship Detail",
-    desc: "Premium jewelry pedestal with warm golden rim spotlight and mirror reflection",
-    themeBg: "radial-gradient(circle at 50% 40%, #fdfbf7 0%, #ede6db 70%, #d8cdbe 100%)",
-    themeType: "highlight"
-  }
+    id: "white-catalog",
+    name: "3. Monica Pure White Catalog",
+    tag: "Clean E-Commerce App",
+    desc: "Seamless white acrylic catalog display with crisp floor shadow",
+    bgUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1080&q=85",
+    type: "white",
+  },
+  {
+    id: "walnut-timber",
+    name: "4. Royal Espresso Wood Pedestal",
+    tag: "Antique Gold Showcase",
+    desc: "Polished dark espresso wood block with warm directional rim spotlight",
+    bgUrl: "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=1080&q=85",
+    type: "wood",
+  },
 ];
 
 export default function Home() {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
-  const [imageFile, setImageFile] = useState<string | null>(null);
-  const [activeTheme, setActiveTheme] = useState(0);
+  const [selectedCat, setSelectedCat] = useState(PRODUCT_CATEGORIES[0]);
+  const [cutoutImage, setCutoutImage] = useState<string | null>(null);
+  const [activeThemeIdx, setActiveThemeIdx] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [ready, setReady] = useState(false);
-  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
     if (password.trim().length > 0) setUnlocked(true);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Instant Smart Background Eraser (Extracts pure jewellery cutout)
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageFile(reader.result as string);
-        setReady(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+    if (!file) return;
 
-  const generateAllThemes = () => {
-    if (!imageFile) {
-      alert("મહેરબાની કરીને પહેલા ઘરેણાંનો ફોટો અપલોડ કરો!");
-      return;
-    }
     setLoading(true);
-    setReady(false);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
 
-    setTimeout(() => {
-      setLoading(false);
-      setReady(true);
-    }, 1200);
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        // Auto sampling background edges
+        const cornerR = (data[0] + data[(canvas.width - 1) * 4]) / 2;
+        const cornerG = (data[1] + data[(canvas.width - 1) * 4 + 1]) / 2;
+        const cornerB = (data[2] + data[(canvas.width - 1) * 4 + 2]) / 2;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+
+          const diff = Math.sqrt(
+            Math.pow(r - cornerR, 2) + Math.pow(g - cornerG, 2) + Math.pow(b - cornerB, 2)
+          );
+
+          // Clear light/white backdrop or flat background
+          if (diff < 50 || (r > 220 && g > 220 && b > 220) || (r < 30 && g < 30 && b < 30 && cornerR < 50)) {
+            data[i + 3] = 0;
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        setCutoutImage(canvas.toDataURL("image/png"));
+        setLoading(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
-  // Direct Phone Gallery Download (Full High Quality)
-  const downloadToPhoneGallery = (themeName: string, themeType: string) => {
-    if (!imageFile) return;
+  // Direct High-Resolution Download into Mobile Gallery
+  const saveToPhoneGallery = (themeIdx: number) => {
+    if (!cutoutImage) return;
 
+    const theme = THEMES[themeIdx];
     const canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1080;
+    canvas.width = 1200;
+    canvas.height = 1200;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Background Rendering
-    if (themeType === "white" || themeType === "stand") {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 1080, 1080);
-      // Bust stand base
-      ctx.fillStyle = "#f5f5f7";
-      ctx.beginPath();
-      ctx.ellipse(540, 680, 260, 240, 0, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (themeType === "model") {
-      const grad = ctx.createLinearGradient(0, 0, 0, 1080);
-      grad.addColorStop(0, "#2c1518");
-      grad.addColorStop(0.5, "#4d1d23");
-      grad.addColorStop(1, "#180a0c");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1080, 1080);
-    } else if (themeType === "velvet") {
-      const rad = ctx.createRadialGradient(540, 540, 50, 540, 540, 600);
-      rad.addColorStop(0, "#880c1d");
-      rad.addColorStop(0.7, "#48030d");
-      rad.addColorStop(1, "#1a0105");
-      ctx.fillStyle = rad;
-      ctx.fillRect(0, 0, 1080, 1080);
-    } else {
-      const rad = ctx.createRadialGradient(540, 450, 50, 540, 540, 600);
-      rad.addColorStop(0, "#fdfcf9");
-      rad.addColorStop(0.7, "#ede5d8");
-      rad.addColorStop(1, "#d6cabb");
-      ctx.fillStyle = rad;
-      ctx.fillRect(0, 0, 1080, 1080);
-    }
+    const bgImg = new Image();
+    bgImg.crossOrigin = "anonymous";
+    bgImg.src = theme.bgUrl;
 
-    // Shadow
-    ctx.shadowColor = themeType === "velvet" ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.35)";
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetY = 25;
+    bgImg.onload = () => {
+      ctx.drawImage(bgImg, 0, 0, 1200, 1200);
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = imageFile;
-    img.onload = () => {
-      const scale = Math.min(780 / img.width, 780 / img.height);
-      const w = img.width * scale;
-      const h = img.height * scale;
-      const x = (1080 - w) / 2;
-      const y = (1080 - h) / 2;
+      const jwlImg = new Image();
+      jwlImg.src = cutoutImage;
+      jwlImg.onload = () => {
+        ctx.shadowColor = theme.type === "velvet" ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.55)";
+        ctx.shadowBlur = 35;
+        ctx.shadowOffsetY = 18;
 
-      ctx.drawImage(img, x, y, w, h);
+        const scale = selectedCat.scale * 1.35;
+        const aspect = jwlImg.width / jwlImg.height;
+        const w = 800 * scale;
+        const h = w / aspect;
+        const x = (1200 - w) / 2;
+        const yOffset = theme.type === "model" ? 440 : 540;
+        const y = yOffset - h / 2;
 
-      // Watermark Stamp
-      ctx.shadowColor = "transparent";
-      ctx.font = "bold 26px sans-serif";
-      ctx.fillStyle = themeType === "white" || themeType === "stand" || themeType === "highlight" ? "#9a7820" : "#e8c872";
-      ctx.textAlign = "center";
-      ctx.fillText("RADHIKA JEWELLERS", 540, 1030);
+        ctx.drawImage(jwlImg, x, y, w, h);
 
-      // Trigger Mobile Download
-      const link = document.createElement("a");
-      link.download = `Radhika-Jewellers-${themeName.replace(/\s+/g, "-")}.png`;
-      link.href = canvas.toDataURL("image/png");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        // Radhika watermark stamp
+        ctx.shadowColor = "transparent";
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillStyle = "#e8c872";
+        ctx.textAlign = "center";
+        ctx.fillText("RADHIKA JEWELLERS", 600, 1140);
+
+        const a = document.createElement("a");
+        a.download = `Radhika-${selectedCat.id}-${theme.id}.png`;
+        a.href = canvas.toDataURL("image/png");
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
     };
   };
 
@@ -158,7 +167,7 @@ export default function Home() {
       <div style={{ minHeight: "100vh", backgroundColor: "#0b0b0e", color: "#f7e7ce", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
         <div style={{ background: "#15151a", padding: "40px", borderRadius: "16px", border: "1px solid #d4af37", textAlign: "center", maxWidth: "400px", width: "90%" }}>
           <h1 style={{ color: "#e8c872", letterSpacing: "2px", margin: "0 0 6px 0", fontSize: "22px" }}>RADHIKA JEWELLERS</h1>
-          <p style={{ color: "#888", fontSize: "11px", marginBottom: "25px", letterSpacing: "1.5px" }}>BRIDAL CATALOG STUDIO</p>
+          <p style={{ color: "#888", fontSize: "11px", marginBottom: "25px", letterSpacing: "1.5px" }}>ALL JEWELLERY AUTO CATALOG STUDIO</p>
           <form onSubmit={handleUnlock}>
             <input
               type="password"
@@ -176,239 +185,163 @@ export default function Home() {
     );
   }
 
-  const currentTheme = THEMES[activeTheme];
+  const currentTheme = THEMES[activeThemeIdx];
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#ffffff", color: "#111", fontFamily: "system-ui, sans-serif" }}>
-      {/* Top Banner like Monica Jewellers */}
-      <div style={{ background: "#0b2038", color: "#fff", textAlign: "center", padding: "8px 12px", fontSize: "12px", letterSpacing: "0.5px" }}>
-        Radhika Jewellers • 4 Luxury Bridal Themes Studio (Monica Jewellers Standard)
-      </div>
-
-      {/* Header */}
-      <header style={{ borderBottom: "1px solid #eee", padding: "15px 30px", display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: "1400px", margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#0d0d12", color: "#f1f1f5", fontFamily: "system-ui, sans-serif" }}>
+      {/* Top Bar */}
+      <div style={{ background: "#16161f", borderBottom: "1px solid #292937", padding: "14px 30px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h1 style={{ fontSize: "20px", fontWeight: "800", letterSpacing: "1.5px", margin: 0, color: "#9a7820" }}>RADHIKA JEWELLERS</h1>
-          <span style={{ fontSize: "11px", color: "#666" }}>E-COMMERCE CATALOG & MOBILE GALLERY MAKER</span>
+          <span style={{ color: "#e8c872", fontWeight: "800", fontSize: "19px", letterSpacing: "1.5px" }}>RADHIKA JEWELLERS</span>
+          <span style={{ fontSize: "11px", color: "#888", marginLeft: "12px" }}>UNIVERSAL MULTI-PRODUCT CATALOG CREATOR</span>
         </div>
-        <button onClick={() => setUnlocked(false)} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: "12px" }}>
+        <button onClick={() => setUnlocked(false)} style={{ background: "#22222d", border: "1px solid #444", color: "#aaa", padding: "6px 14px", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}>
           Lock
         </button>
-      </header>
+      </div>
 
-      {/* Main Studio Area */}
-      <main style={{ maxWidth: "1350px", margin: "30px auto", padding: "0 25px" }}>
+      <div style={{ maxWidth: "1440px", margin: "25px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "380px 1fr", gap: "25px" }}>
         
-        {/* Upload & Generator Control Bar */}
-        <div style={{ background: "#f8f8fb", border: "1px solid #e5e5ed", padding: "20px", borderRadius: "12px", marginBottom: "30px", display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "260px" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#444", marginBottom: "6px" }}>
-              ૧. ઘરેણાંનો ફોટો અહીંથી પસંદ કરો:
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              style={{ width: "100%", padding: "10px", background: "#fff", border: "1px solid #ccc", borderRadius: "8px", fontSize: "13px" }}
-            />
+        {/* Left Side: Product Selector & Upload */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          
+          {/* Category Selector */}
+          <div style={{ background: "#15151e", padding: "20px", borderRadius: "12px", border: "1px solid #262635" }}>
+            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 10px 0" }}>૧. કઈ પ્રોડક્ટ છે તે પસંદ કરો:</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCat(cat)}
+                  style={{
+                    padding: "9px 8px",
+                    borderRadius: "6px",
+                    border: selectedCat.id === cat.id ? "1px solid #d4af37" : "1px solid #2d2d3d",
+                    background: selectedCat.id === cat.id ? "#2b2513" : "#101016",
+                    color: selectedCat.id === cat.id ? "#e8c872" : "#aaa",
+                    cursor: "pointer",
+                    fontSize: "11px",
+                    textAlign: "left"
+                  }}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Upload Card */}
+          <div style={{ background: "#15151e", padding: "20px", borderRadius: "12px", border: "1px solid #262635" }}>
+            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 10px 0" }}>૨. પ્રોડક્ટનો ફોટો અપલોડ કરો:</h3>
+            <label style={{ border: "2px dashed #444", borderRadius: "8px", padding: "20px", display: "block", textAlign: "center", cursor: "pointer", background: "#0e0e13" }}>
+              {cutoutImage ? (
+                <div>
+                  <img src={cutoutImage} alt="Cutout" style={{ maxHeight: "110px", maxWidth: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.6))" }} />
+                  <span style={{ color: "#4ade80", fontSize: "12px", display: "block", marginTop: "8px" }}>✓ Background Removed (Clean Cutout)</span>
+                </div>
+              ) : (
+                <div>
+                  <span style={{ color: "#ddd", fontSize: "13px", display: "block" }}>ગમે તે પ્રોડક્ટનો ફોટો નાખો</span>
+                  <span style={{ color: "#777", fontSize: "11px" }}>Background આપોઆપ સાફ થઈ જશે</span>
+                </div>
+              )}
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: "none" }} />
+            </label>
+          </div>
+
+          {/* Themes Switcher */}
+          <div style={{ background: "#15151e", padding: "20px", borderRadius: "12px", border: "1px solid #262635" }}>
+            <h3 style={{ color: "#e8c872", fontSize: "13px", margin: "0 0 12px 0" }}>૩. શૂટ થીમ પસંદ કરો:</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {THEMES.map((theme, idx) => (
+                <div
+                  key={theme.id}
+                  onClick={() => setActiveThemeIdx(idx)}
+                  style={{
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: activeThemeIdx === idx ? "2px solid #d4af37" : "1px solid #2d2d3d",
+                    background: activeThemeIdx === idx ? "#262113" : "#111117",
+                    cursor: "pointer"
+                  }}
+                >
+                  <div style={{ fontWeight: "bold", fontSize: "13px", color: activeThemeIdx === idx ? "#e8c872" : "#eee" }}>
+                    {theme.name}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#888", marginTop: "3px" }}>
+                    {theme.desc}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Download Current Theme */}
           <button
-            onClick={generateAllThemes}
-            disabled={loading || !imageFile}
+            onClick={() => saveToPhoneGallery(activeThemeIdx)}
+            disabled={!cutoutImage || loading}
             style={{
-              padding: "14px 28px",
+              padding: "15px",
               borderRadius: "8px",
-              background: !imageFile ? "#ccc" : loading ? "#555" : "linear-gradient(135deg, #d4af37, #997400)",
+              background: !cutoutImage ? "#333" : "linear-gradient(135deg, #d4af37, #997400)",
               border: "none",
-              color: "#fff",
+              color: "#000",
               fontWeight: "bold",
               fontSize: "14px",
-              cursor: !imageFile || loading ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 15px rgba(212,175,55,0.25)"
+              cursor: !cutoutImage ? "not-allowed" : "pointer",
+              boxShadow: "0 4px 15px rgba(212,175,55,0.3)"
             }}
           >
-            {loading ? "ચારેય થીમ બની રહી છે..." : "⚡ Create All 4 Themes Together"}
+            📥 આ ફોટો મોબાઈલ ગેલેરીમાં સેવ કરો
           </button>
+
+          {/* Download All 4 Themes in One Click */}
+          <button
+            onClick={() => {
+              THEMES.forEach((_, i) => setTimeout(() => saveToPhoneGallery(i), i * 300));
+            }}
+            disabled={!cutoutImage || loading}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              background: "#22222d",
+              border: "1px solid #444",
+              color: "#e8c872",
+              fontWeight: "bold",
+              fontSize: "13px",
+              cursor: !cutoutImage ? "not-allowed" : "pointer",
+            }}
+          >
+            📥 એકસાથે ચારેય થીમ્સ સેવ કરો (All 4 Shoots)
+          </button>
+
         </div>
 
-        {/* Studio Product View (Monica Jewellers Layout) */}
-        <div style={{ display: "grid", gridTemplateColumns: "110px 1fr 380px", gap: "30px", alignItems: "start" }}>
+        {/* Right Side: Big Live Showcase Canvas */}
+        <div style={{ background: "#15151e", borderRadius: "12px", border: "1px solid #262635", padding: "20px", display: "flex", flexDirection: "column" }}>
           
-          {/* Left 4 Thumbnails */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {THEMES.map((t, idx) => (
-              <div
-                key={t.id}
-                onClick={() => setActiveTheme(idx)}
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  borderRadius: "8px",
-                  border: activeTheme === idx ? "2px solid #b38e28" : "1px solid #e0e0e0",
-                  cursor: "pointer",
-                  overflow: "hidden",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: t.themeBg,
-                  boxShadow: activeTheme === idx ? "0 4px 12px rgba(179,142,40,0.3)" : "none",
-                  transition: "all 0.2s ease",
-                  padding: "6px"
-                }}
-              >
-                {imageFile ? (
-                  <img
-                    src={imageFile}
-                    alt={t.name}
-                    style={{ maxHeight: "80px", maxWidth: "80%", objectFit: "contain", filter: t.themeType === "velvet" ? "drop-shadow(0 6px 10px rgba(0,0,0,0.7))" : "drop-shadow(0 3px 5px rgba(0,0,0,0.25))" }}
-                  />
-                ) : (
-                  <span style={{ fontSize: "9px", color: t.themeType === "velvet" || t.themeType === "model" ? "#fff" : "#888", textAlign: "center" }}>
-                    {t.name}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Center Big Shoot Canvas */}
-          <div
-            style={{
-              minHeight: "580px",
-              borderRadius: "12px",
-              border: "1px solid #eaeaea",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative",
-              overflow: "hidden",
-              background: currentTheme.themeBg,
-              transition: "background 0.3s ease"
-            }}
-          >
-            {loading ? (
-              <div style={{ textAlign: "center", color: "#888" }}>
-                <p style={{ fontSize: "15px", fontWeight: "bold" }}>Monica Style Shoot Ready Thai Rahyu Chhe...</p>
-              </div>
-            ) : imageFile ? (
-              <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "30px" }}>
-                
-                {/* Mannequin Stand Shadow for White Theme */}
-                {currentTheme.themeType === "stand" && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      width: "320px",
-                      height: "280px",
-                      borderRadius: "50%",
-                      background: "radial-gradient(circle, #f3f3f6 0%, #ebebef 60%, transparent 80%)",
-                      zIndex: 1,
-                    }}
-                  />
-                )}
-
-                {/* Main Jewelry */}
-                <img
-                  src={imageFile}
-                  alt="Jewelry Shoot"
-                  style={{
-                    maxHeight: "460px",
-                    maxWidth: "85%",
-                    objectFit: "contain",
-                    filter:
-                      currentTheme.themeType === "velvet"
-                        ? "drop-shadow(0 28px 38px rgba(0,0,0,0.9)) brightness(1.05)"
-                        : currentTheme.themeType === "model"
-                        ? "drop-shadow(0 20px 28px rgba(0,0,0,0.7))"
-                        : "drop-shadow(0 18px 25px rgba(0,0,0,0.22))",
-                    zIndex: 2,
-                    transform: "scale(1.03)"
-                  }}
-                />
-
-                <span style={{ position: "absolute", top: "18px", left: "18px", background: "rgba(0,0,0,0.65)", color: "#fff", fontSize: "11px", padding: "5px 12px", borderRadius: "6px" }}>
-                  {currentTheme.name}
-                </span>
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "30px", color: "#888" }}>
-                <p style={{ fontSize: "15px", margin: "0 0 6px 0" }}>ઘરેણાંનો ફોટો અપલોડ થયેલ નથી</p>
-                <span style={{ fontSize: "12px", color: "#aaa" }}>ઉપરથી ફોટો પસંદ કરી "Create All 4 Themes Together" બટન દબાવો</span>
-              </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#e8c872" }}>
+                {currentTheme.name}
+              </h3>
+              <span style={{ fontSize: "11px", color: "#777" }}>
+                Selected Category: {selectedCat.name}
+              </span>
+            </div>
+            {cutoutImage && (
+              <span style={{ color: "#4ade80", fontSize: "11px", background: "#122818", border: "1px solid #1f572a", padding: "3px 10px", borderRadius: "6px" }}>
+                ✓ Product Extracted & Fitted
+              </span>
             )}
           </div>
 
-          {/* Right Download & Product Info Panel */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <div>
-              <span style={{ fontSize: "11px", background: "#fcf4d9", color: "#8a6d1c", padding: "3px 8px", borderRadius: "4px", fontWeight: "bold" }}>
-                22K GOLD BRIDAL CATALOG
-              </span>
-              <h2 style={{ fontSize: "22px", fontWeight: "600", margin: "8px 0 6px 0", color: "#222" }}>
-                {currentTheme.name}
-              </h2>
-              <p style={{ fontSize: "12px", color: "#666", lineHeight: "1.5", margin: 0 }}>
-                {currentTheme.desc}
-              </p>
-            </div>
-
-            {/* Direct Phone Gallery Download Buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
-              <button
-                onClick={() => downloadToPhoneGallery(currentTheme.name, currentTheme.themeType)}
-                disabled={!imageFile}
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  borderRadius: "8px",
-                  background: !imageFile ? "#ccc" : "linear-gradient(135deg, #16a34a, #15803d)",
-                  border: "none",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  cursor: !imageFile ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  boxShadow: "0 4px 12px rgba(22,163,74,0.3)"
-                }}
-              >
-                📥 Save Current Photo to Phone Gallery
-              </button>
-
-              <button
-                onClick={() => {
-                  THEMES.forEach((t) => downloadToPhoneGallery(t.name, t.themeType));
-                }}
-                disabled={!imageFile}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  background: !imageFile ? "#eee" : "#f5f5f7",
-                  border: "1px solid #ddd",
-                  color: "#222",
-                  fontWeight: "bold",
-                  fontSize: "13px",
-                  cursor: !imageFile ? "not-allowed" : "pointer"
-                }}
-              >
-                📥 Save All 4 Photos to Phone Together
-              </button>
-            </div>
-
-            {/* Features checkmarks */}
-            <div style={{ borderTop: "1px solid #eee", paddingTop: "15px", display: "flex", flexDirection: "column", gap: "8px", fontSize: "12px", color: "#555" }}>
-              <div>✓ High-Resolution (1080x1080 HD E-Commerce Export)</div>
-              <div>✓ Direct Phone Gallery Auto-Download</div>
-              <div>✓ Monica Jewellers Style Real Shadows & Stand</div>
-            </div>
-          </div>
-
-        </div>
-      </main>
-    </div>
-  );
-}
+          {/* Live Stage */}
+          <div
+            style={{
+              flex: 1,
+              minHeight: "580px",
+              borderRadius: "10px",
+              position: "relative",
+              overflow: "hidden",
+              backgroundImage:
